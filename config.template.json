@@ -1,0 +1,17 @@
+{
+  "use_firebase": false,
+  "discord": {
+    "webhooks": [
+      {
+        "id": "0000000000000",
+        "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shows": [
+          "the-blacklist"
+        ]
+      }
+    ]
+  },
+  "shows": {
+    "the-blacklist": []
+  }
+}

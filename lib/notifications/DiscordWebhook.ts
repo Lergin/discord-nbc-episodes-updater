@@ -1,22 +1,22 @@
-import { WebhookClient, RichEmbed } from "discord.js";
-import { NotificationSubscriber } from "./NotificationSubscriber";
+import { RichEmbed } from "discord.js";
+import { DiscordWebhook as _DiscordWebhook } from "lergins-bot-framework";
 
-export class DiscordWebhook extends WebhookClient implements NotificationSubscriber {
-  private _shows: Set<string> = new Set();
+export class DiscordWebhook extends _DiscordWebhook {
+  private shows: Set<string> = new Set();
 
-  set shows(shows: Set<string>) {
-    this._shows = shows;
+  constructor(settings){
+    super(settings);
+
+    this.shows = new Set(settings.shows);
   }
 
-  get shows(){
-    return this._shows;
+  async update(key, message) {
+    switch (key) {
+      case 'new-episode': return this.sendNewEpisode(message.show, message.episode);
+    }
   }
 
-  constructor(id: string, key: string){
-    super(id, key);
-  }
-
-  sendNewEpisode(show: string, episode: any){
+  sendNewEpisode(show: string, episode: any) {
     if (!this.shows.has(show)) return;
 
     const embed = new RichEmbed();

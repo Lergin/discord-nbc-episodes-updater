@@ -8,7 +8,7 @@ export function fetchInformation(series){
 }
 
 export async function getAvailableEpisodes(series){
-  const info = fetchInformation(series);
+  const info = await fetchInformation(series);
   
   return Object.values(info.entities)
     .filter(a => a.type === "Full Episode");

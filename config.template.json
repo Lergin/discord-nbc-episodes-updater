@@ -1,15 +1,14 @@
 {
   "use_firebase": false,
-  "discord": {
-    "webhooks": [
-      {
-        "id": "0000000000000",
-        "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "shows": [
-          "the-blacklist"
-        ]
-      }
-    ]
+  "observers": {
+    "discord_debug": {
+      "type": "discord_webhook",
+      "id": "0000000000000",
+      "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "shows": [
+        "the-blacklist"
+      ]
+    }
   },
   "shows": {
     "the-blacklist": []

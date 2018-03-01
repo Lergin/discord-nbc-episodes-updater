@@ -1,39 +1,22 @@
-import * as Twitter from "twit";
-import { NotificationSubscriber } from './NotificationSubscriber';
-import { NotificationSender } from "./NotificationSender";
+import { NotificationTwitterBot } from "lergins-bot-framework";
 
-export class NotificationTwitterBot extends Twitter implements NotificationSubscriber {
-  private _shows: Set<string> = new Set();
-
-  set shows(shows: Set<string>) {
-    this._shows = shows;
-  }
-
-  get shows() {
-    return this._shows;
-  }
+export class TwitterBot extends NotificationTwitterBot {
+  private shows: Set<string> = new Set();
   
-  constructor(config){
-    super(config);
+  constructor(settings){
+    super(settings);
 
-    this.shows = new Set(config.shows);
+    this.shows = new Set(settings.shows);
   }
 
-  async send(message, sendNotification=true) {
-    let a = this.post('statuses/update', {status: message});
-
-    try {
-      let data = await a.then(res => res.data).catch(console.error);
-    }catch(err ){
-      console.log(err);
+  async update(key, message) {
+    switch (key) {
+      case 'new-episode': return this.sendNewEpisode(message.show, message.episode);
     }
   }
 
   sendNewEpisode(show: string, episode: any) {
     if (!this.shows.has(show)) return;
 
-  }
-
-  sendTweet() {
   }
 }

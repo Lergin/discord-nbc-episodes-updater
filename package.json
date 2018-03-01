@@ -1,7 +1,7 @@
 {
-  "name": "nbc-episodes-updater",
+  "name": "discord-nbc-episodes-updater",
   "version": "1.0.0",
-  "description": "",
+  "description": "A discord webhook that sends a message everytime a new episode of an nbc series is available to stream on nbc.com",
   "main": "index.js",
   "dependencies": {
     "discord.js": "^11.3.0",

@@ -3,14 +3,12 @@ import * as path from "path";
 import { BotFramework } from "lergins-bot-framework";
 
 import { DiscordWebhook } from "./notifications/DiscordWebhook";
-import { TwitterBot } from "./notifications/TwitterBot";
 
 import { getAvailableEpisodes } from "./nbc";
 
 async function main() {
     const bot: BotFramework = new BotFramework.Builder()
-        .discordWebhook(DiscordWebhook)
-        .twitterBot(TwitterBot)
+        .observer('discord_webhook', DiscordWebhook)
         .configFolderPath(path.join(__dirname, '..'))
         .build();
 

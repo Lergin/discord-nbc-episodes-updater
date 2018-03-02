@@ -1,11 +1,11 @@
 import { initializeApp, credential, database, firestore } from "firebase-admin";
 import * as path from "path";
+import { isArray } from "util";
 import { BotFramework } from "lergins-bot-framework";
 
 import { DiscordWebhook } from "./notifications/DiscordWebhook";
 
 import { getAvailableEpisodes } from "./nbc";
-import { isArray } from "util";
 
 async function main() {
     const bot: BotFramework = new BotFramework.Builder()
@@ -27,24 +27,24 @@ async function update(bot: BotFramework) {
 
     for (const show in shows) {
         if (shows.hasOwnProperty(show)) {
-            if (!isArray(shows[show])) shows[show] = [];
+            await getAvailableEpisodes(show)
+                .then(eps => Promise.all(eps.map(async ep => {
+                    return {
+                        val: ep,
+                        filter: !await bot.config.has(`shows/${show}`, ep.id)
+                    }
+                })))
+                .then(eps => eps
+                    .filter(ep => ep.filter)
+                    .map(ep => ep.val)
+                    .map(ep => {
+                        bot.config.push(`shows/${show}`, ep.id);
 
-            const knownEps = shows[show];
-            const newEps = await getAvailableEpisodes(show)
-                .then(eps => eps.filter(ep => knownEps.indexOf(ep.id) === -1));
-
-            for (let ep of newEps) {
-                addedShow = true;
-                knownEps.pushe(p.id);
-
-                console.log(`New Episode of ${show}: ${ep.seasonNumber}.${ep.episodeNumber.toString().padStart(2, '0')} ${ep.title} (${ep.id})`)
-                bot.send('new-episode', { show: show, episode: ep });
-            }
+                        console.log(`New Episode of ${show}: ${ep.seasonNumber}.${ep.episodeNumber.toString().padStart(2, '0')} ${ep.title} (${ep.id})`)
+                        bot.send('new-episode', { show: show, episode: ep });
+                    })
+                );
         }
-    }
-
-    if(addedShow){
-        bot.config.set('shows', shows);
     }
 }
 

@@ -5,6 +5,7 @@ import { BotFramework } from "lergins-bot-framework";
 import { DiscordWebhook } from "./notifications/DiscordWebhook";
 
 import { getAvailableEpisodes } from "./nbc";
+import { isArray } from "util";
 
 async function main() {
     const bot: BotFramework = new BotFramework.Builder()
@@ -20,20 +21,25 @@ async function main() {
 }
 
 async function update(bot: BotFramework) {
-    const shows = await bot.config.get('shows');
+    const shows = await bot.config.get('shows') || [];
 
     let addedShow = false;
 
-    for(let [show, knoweps] of Object.entries(shows)) {
-        const eps = await getAvailableEpisodes(show)
-        .then(eps => eps.filter(ep => knoweps.indexOf(ep.id) === -1));
-        
-        for(let ep of eps) {
-            addedShow = true;
-            knoweps.push(ep.id);
-            
-            console.log(`New Episode of ${show}: ${ep.seasonNumber}.${ep.episodeNumber.toString().padStart(2, '0')} ${ep.title} (${ep.id})`)
-            bot.send('new-episode', {show:show, episode:ep});
+    for (const show in shows) {
+        if (shows.hasOwnProperty(show)) {
+            if (!isArray(shows[show])) shows[show] = [];
+
+            const knownEps = shows[show];
+            const newEps = await getAvailableEpisodes(show)
+                .then(eps => eps.filter(ep => knownEps.indexOf(ep.id) === -1));
+
+            for (let ep of newEps) {
+                addedShow = true;
+                knownEps.pushe(p.id);
+
+                console.log(`New Episode of ${show}: ${ep.seasonNumber}.${ep.episodeNumber.toString().padStart(2, '0')} ${ep.title} (${ep.id})`)
+                bot.send('new-episode', { show: show, episode: ep });
+            }
         }
     }
 

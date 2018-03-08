@@ -1,0 +1,162 @@
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.1.0/webcomponents-loader.js"></script>
+  <base href="https://cdn.rawgit.com/download/polymer-cdn/2.3.1/lib/">
+  <link rel="import" href="paper-input/paper-input.html">
+  <link rel="import" href="paper-button/paper-button.html">
+  <link rel="import" href="polymer/polymer-element.html">
+  <link rel="import" href="polymerfire/firebase-app.html">
+  <link rel="import" href="polymerfire/firebase-document.html">
+  <style>
+    body {
+      font-family: 'Roboto', 'Noto', sans-serif;
+      box-sizing: border-box;
+      background-color: #eeeeee;
+    }
+  </style>
+</head>
+<body>
+
+<my-app unresolved>Loading...</my-app>
+
+<dom-module id="my-app">
+  <template>
+    <firebase-app
+      auth-domain="dashboard-196e4.firebaseapp.com"
+      database-url="https://dashboard-196e4.firebaseio.com/"
+      api-key="AIzaSyBr2_BiRET53JK44D3WBDqGx6HKqmAVatg"
+      storage-bucket="dashboard-196e4.appspot.com"
+      messaging-sender-id="359812903483">
+    </firebase-app>
+
+    <div>
+      Just past the url for a discord webhook into the input and then input the names of the nbc shows and you will recieve a message everytime a new episode is available to stream on <a href="https://ncb.com">nbc.com</a>.
+    </div>
+
+    <paper-input always-float-label label="Discord Webhook Link" value="{{discordWebhookLink}}" readonly="[[loaded]]"></paper-input>
+    
+    <firebase-document
+      id="doc"
+      path="/config_nbc_episodes_updater/observers/[[discordKey]]"
+      data="{{data}}">
+    </firebase-document>
+    
+    <template is="dom-if" if="[[discordId]]">
+      <div>
+        The Show Id is the last part of the url of the show site eg the-blacklist for <a href="https://nbc.com/the-blacklist">nbc.com/the-blacklist</a>. The changes are synced and saved in realtime!
+      </div>
+      
+      <div>
+        <template is="dom-repeat" items="{{shows}}">
+          <paper-input always-float-label label="Show Id" value="{{item}}"></paper-input>
+        </template>
+  
+        <paper-button on-tap="addShow">Add Show</paper-button>
+        <paper-button on-tap="editOtherWebhook">Edit other Webhook</paper-button>
+      </div>
+    </template>
+  </template>
+  <script>
+    class MyApp extends Polymer.Element {
+      static get is() { return 'my-app'; }
+      static get properties() {
+        return {
+          discordWebhookLink: {
+            type: String,
+            value: ""
+          },
+          discordId: {
+            type: String,
+            computed: 'computeId(discordWebhookLink)'
+          },
+          discordKey: {
+            type: String,
+            computed: 'computeKey(discordWebhookLink)'
+          },
+          shows: {
+            type: Array,
+            value: []
+          },
+          data: {
+            type: Object,
+            value: undefined
+          },
+          loaded: {
+            type: Boolean,
+            value: false
+          }
+        }
+      }
+      static get observers() {
+        return [
+          '_save(discordId, discordKey, shows.*)',
+          '_load(data, data.key, data.shows.*)'
+        ]
+      }
+
+      _hasElements(arr){
+        return arr && arr.length !== 0;
+      }
+
+      _load(data){
+        if(data && data.shows){
+          this.shows = data.shows;
+        }
+
+        if(data && data.key) this.loaded = true;
+      }
+
+      editOtherWebhook(){
+        this.loaded = false;
+        this.discordWebhookLink = "";
+        this.data = undefined;
+        this.shows = [];
+      }
+
+      _save(){
+        if(this.discordId && this.discordKey && this.shows && this.$.doc.ref){
+          if(this.shows.filter(a => a !== "").length > 0 && this.discordId && this.discordKey){
+            this.$.doc.ref.set({
+              id: this.discordId,
+              key: this.discordKey,
+              type: 'discord-webhook',
+              shows: this.shows.filter(a => a !== "")
+            });
+          }else{
+            this.$.doc.ref.remove();
+          }
+        }
+      }
+
+      computeId(link){
+        if(!link) return;
+
+        const matches = link.match(/(?<=webhooks\/)\d*/);
+
+        if(matches && matches.length > 0){
+          return matches[0];
+        }
+
+        return;
+      }
+
+      computeKey(link){
+        if (!link) return;
+
+        const matches = link.match(/(?<=\/)[\w-]{50,}/);
+
+        if (matches && matches.length > 0) {
+          return matches[0];
+        }
+
+        return;
+      }
+
+      addShow(){
+        this.push("shows", "")
+      }
+    }
+
+    window.customElements.define(MyApp.is, MyApp);
+  </script>
+</dom-module>
+</body>

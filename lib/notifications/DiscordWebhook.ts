@@ -12,21 +12,22 @@ export class DiscordWebhook extends _DiscordWebhook {
 
   async update(key, message) {
     switch (key) {
-      case 'new-episode': return this.sendNewEpisode(message.show, message.episode);
+      case 'new-episode': return this.sendNewEpisode(message);
     }
   }
 
-  sendNewEpisode(show: string, episode: any) {
-    if (!this.shows.has(show)) return;
+  sendNewEpisode(data) {
+    if (!this.shows.has(data.show.name)) return;
 
     const embed = new RichEmbed();
-    embed.setURL(episode.permalink);
-    embed.setTitle(`New ${episode.showName} Episode available`);
-    embed.addField("Episode", episode.title, true);
-    embed.addField("Number", `${episode.seasonNumber}.${episode.episodeNumber.toString().padStart(2, '0')}`, true);
-    embed.addField("Available Till", formatDate(new Date(episode.expiration)), true);
-    embed.setImage(episode.image.path);
-    embed.setDescription(episode.description);
+    embed.setURL(data.permalink);
+    embed.setTitle(`New ${data.show.shortTitle} Episode available`);
+    embed.addField("Episode", data.title, true);
+    embed.addField("Number", `${data.seasonNumber}.${data.episodeNumber.toString().padStart(2, '0')}`, true);
+    embed.addField("Air Date", formatDate(new Date(data.airdate)), true);
+    embed.addField("Available Till", formatDate(new Date(data.expiration)), true);
+    embed.setImage(`https://www.nbc.com${data.image.path}`);
+    embed.setDescription(data.description);
 
     this.send(embed);
   }

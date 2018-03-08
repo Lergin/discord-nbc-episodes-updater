@@ -1,5 +1,5 @@
 import { BasicUpdater } from "lergins-bot-framework";
-import { getAvailableEpisodes } from "../nbc";
+import { getAvailableEpisodes, getVideos } from "../nbc";
 import { bot } from '../main';
 
 export class NbcEpisodesUpdater extends BasicUpdater {
@@ -8,30 +8,15 @@ export class NbcEpisodesUpdater extends BasicUpdater {
   }
 
   async updateInfo() {
-    const shows = await bot.config().get('shows') || [];
+    const lastRunDate = new Date(parseInt(await bot.config().get('last-run')) || new Date().getTime());
 
-    let addedShow = false;
+    const videos = await getVideos(lastRunDate);
 
-    for (const show in shows) {
-      if (shows.hasOwnProperty(show)) {
-        await getAvailableEpisodes(show)
-          .then(eps => Promise.all(eps.map(async ep => {
-            return {
-              val: ep,
-              filter: !await bot.config().has(`shows/${show}`, ep.id)
-            }
-          })))
-          .then(eps => eps
-            .filter(ep => ep.filter)
-            .map(ep => ep.val)
-            .map(ep => {
-              bot.config().push(`shows/${show}`, ep.id);
+    bot.config().set('last-run', new Date().getTime());
 
-              console.log(`New Episode of ${show}: ${ep.seasonNumber}.${ep.episodeNumber.toString().padStart(2, '0')} ${ep.title} (${ep.id})`)
-              bot.send('new-episode', { show: show, episode: ep });
-            })
-          );
-      }
+    for(let video of videos){
+      console.log(`New Episode of ${video.show.name}: ${video.seasonNumber}.${video.episodeNumber.toString().padStart(2, '0')} ${video.title} (${video.uuid})`)
+      bot.send('new-episode', video);      
     }
   }
 }

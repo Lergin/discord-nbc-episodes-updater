@@ -1,5 +1,5 @@
 import { BasicUpdater } from "lergins-bot-framework";
-import { getAvailableEpisodes, getVideos } from "../nbc";
+import { getVideos } from "../nbc";
 import { bot } from '../main';
 
 export class NbcEpisodesUpdater extends BasicUpdater {
@@ -8,11 +8,12 @@ export class NbcEpisodesUpdater extends BasicUpdater {
   }
 
   async updateInfo() {
-    const lastRunDate = new Date(parseInt(await bot.config().get('last-run')) || new Date().getTime());
+    const currentDate = new Date().getTime();
+    const lastRunDate = new Date(parseInt(await bot.config().get('last-run')) || currentDate);
 
     const videos = await getVideos(lastRunDate);
 
-    bot.config().set('last-run', new Date().getTime());
+    bot.config().set('last-run', currentDate);
 
     for(let video of videos){
       console.log(`New Episode of ${video.show.name}: ${video.seasonNumber}.${video.episodeNumber.toString().padStart(2, '0')} ${video.title} (${video.uuid})`)
